@@ -11,7 +11,19 @@ from rest_framework.serializers import ModelSerializer
 
 # User Serializer
 class UserSerializer(ModelSerializer):
+    """Serializer for the User model, providing basic fields for user information."""
+
     class Meta:
+        """
+        Meta options for the UserSerializer.
+        Specifies the model to be serialized (`User`) and the fields that should
+        be included in the serialized output. These fields are:
+        - `id`: The unique identifier for the user.
+        - `username`: The user's username.
+        - `email`: The user's email address.
+        - `first_name`: The user's first name.
+        - `last_name`: The user's last name.
+        """
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
@@ -29,7 +41,24 @@ class RegisterUserView(APIView):
         Handle POST request to register a new user.
         Returns a success message or an error if the username already exists.
         """
-        pass
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username=username, password=password)
+        user.save()
+
+        # Create JWT Token for the newly registered user
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
 
 
 # Protected View Example
@@ -45,7 +74,7 @@ class ProtectedView(APIView):
         Handle GET request for authenticated users.
         Returns a success message if the user is authenticated.
         """
-        pass
+        return Response({"message": "This is a protected view."})
 
 
 # User Detail (Read/Update/Delete) View
@@ -60,19 +89,28 @@ class UserDetailView(APIView):
         """
         Retrieve a user by their primary key (pk).
         """
-        pass
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
     def put(self, request, pk):
         """
         Update a user's details.
         """
-        pass
+        user = get_object_or_404(User, pk=pk)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         """
         Delete a user by their primary key (pk).
         """
-        pass
+        user = get_object_or_404(User, pk=pk)
+        user.delete()
+        return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 
 # List Users View (Admin only)

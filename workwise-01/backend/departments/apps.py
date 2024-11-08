@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 
 
-class AccountsConfig(AppConfig):
-    """Account coniguration"""
+class DepartmentsConfig(AppConfig):
+    """DepartmentsConfig"""
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'accounts'
+    name = 'departments'
