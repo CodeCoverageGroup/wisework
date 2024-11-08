@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies from requirements.txt
         run: |
           python -m pip install --upgrade pip
-          pip install -r workwise-01/backend/requirements.txt  # requirements.txt 경로
+          pip install -r workwise-01/requirements.txt  # requirements.txt 경로
 
       - name: Run Django tests with coverage
         env:
