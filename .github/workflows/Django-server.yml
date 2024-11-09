@@ -50,4 +50,4 @@ jobs:
         run: |
           cd workwise-01/backend
           coverage run manage.py test
-          coverage xml
+          coverage report
