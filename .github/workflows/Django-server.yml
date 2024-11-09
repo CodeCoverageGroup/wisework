@@ -43,17 +43,11 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: backend.settings
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: test_db
+          POSTGRES_PASSWORD: asd123
+          POSTGRES_DB: workwise_db
           DATABASE_HOST: localhost  # PostgreSQL 호스트 설정
           DATABASE_PORT: 5432
         run: |
           cd workwise-01/backend
           coverage run manage.py test
           coverage xml
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: workwise-01/backend/coverage.xml
-          fail_ci_if_error: true
