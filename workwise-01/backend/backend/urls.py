@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponse
+from django.shortcuts import render
 
 def home_view(request):
     """Show a simple home page"""
-    return HttpResponse("Welcome to the homepage!")
+    return render(request, 'home.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

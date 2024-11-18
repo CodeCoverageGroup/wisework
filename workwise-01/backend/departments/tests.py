@@ -4,7 +4,7 @@ from rest_framework import status
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
-from departments.models import Department  # Adjust path based on the structure
+from departments.models import Department
 
 
 class DepartmentAPITestCase(APITestCase):
@@ -56,13 +56,12 @@ class DepartmentAPITestCase(APITestCase):
             - HTTP 200 OK status code.
             - Response data contains all created departments.
         """
-        # Create sample departments
         Department.objects.create(name='HR Department', description='Handles HR')
         Department.objects.create(name='Finance Department', description='Handles Finance')
 
         response = self.client.get(self.department_list_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Ensure two departments are returned
+        self.assertEqual(len(response.data), 2)
 
     def test_update_department(self):
         """
@@ -72,7 +71,6 @@ class DepartmentAPITestCase(APITestCase):
             - HTTP 200 OK status code.
             - Department's name and description are updated as expected.
         """
-        # Create a department to update
         department = Department.objects.create(name='Marketing', description='Handles marketing')
 
         update_url = reverse('department-detail', kwargs={'pk': department.pk})
@@ -81,7 +79,6 @@ class DepartmentAPITestCase(APITestCase):
         response = self.client.put(update_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify the update
         department.refresh_from_db()
         self.assertEqual(department.name, 'Updated Marketing')
         self.assertEqual(department.description, 'Updated description')
@@ -94,13 +91,86 @@ class DepartmentAPITestCase(APITestCase):
             - HTTP 204 No Content status code.
             - Department count decreases by 1, indicating successful deletion.
         """
-        # Create a department to delete
         department = Department.objects.create(name='IT Department', description='Handles IT')
 
         delete_url = reverse('department-detail', kwargs={'pk': department.pk})
         response = self.client.delete(delete_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-        # Verify deletion
         self.assertEqual(Department.objects.count(), 0)
-        
+
+    # New Test Cases for Custom Actions
+
+    def test_recent_departments(self):
+        """
+        Test retrieving the most recent departments.
+        """
+        Department.objects.create(name='HR Department')
+        Department.objects.create(name='Finance Department')
+        Department.objects.create(name='IT Department')
+
+        recent_url = reverse('department-recent-departments')  # Corrected route name
+        response = self.client.get(recent_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertLessEqual(len(response.data), 5)
+
+    def test_count_departments(self):
+        """
+        Test retrieving the total count of departments.
+        """
+        Department.objects.create(name='HR Department')
+        Department.objects.create(name='Finance Department')
+
+        count_url = reverse('department-count-departments')  # Corrected route name
+        response = self.client.get(count_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_search_departments(self):
+        """
+        Test searching departments by name.
+        """
+        Department.objects.create(name='HR Department')
+        Department.objects.create(name='Finance Department')
+
+        search_url = reverse('department-search-departments') + '?name=HR'  # Corrected route name
+        response = self.client.get(search_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_department_details(self):
+        """
+        Test retrieving details of a specific department.
+        """
+        department = Department.objects.create(name='HR Department')
+
+        details_url = reverse('department-department-details', kwargs={'pk': department.pk})  # Corrected route name
+        response = self.client.get(details_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], 'HR Department')
+
+    def test_update_department_description(self):
+        """
+        Test updating the description of a specific department.
+        """
+        department = Department.objects.create(name='HR Department', description='Old description')
+
+        update_description_url = reverse('department-update-description', kwargs={'pk': department.pk})
+        data = {'description': 'New description'}
+        response = self.client.patch(update_description_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        department.refresh_from_db()
+        self.assertEqual(department.description, 'New description')
+
+    def test_soft_delete_department(self):
+        """
+        Test soft deleting a department by setting its name to 'DELETED'.
+        """
+        department = Department.objects.create(name='HR Department')
+
+        soft_delete_url = reverse('department-soft-delete-department', kwargs={'pk': department.pk})  # Corrected route name
+        response = self.client.delete(soft_delete_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        department.refresh_from_db()
+        self.assertEqual(department.name, 'DELETED')

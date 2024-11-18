@@ -1,8 +1,10 @@
+# pylint: disable=no-member
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Job
 from .serializers import JobSerializer
+from django.utils.timezone import now, timedelta
 
 class JobListView(APIView):
     """
@@ -78,3 +80,68 @@ class JobDetailView(APIView):
 
         job.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+# 1. Get Jobs by Priority
+class JobsByPriorityView(APIView):
+    def get(self, request, priority):
+        jobs = Job.objects.filter(priority=priority)
+        serializer = JobSerializer(jobs, many=True)
+        return Response(serializer.data)
+
+# 2. Get Upcoming Jobs
+class UpcomingJobsView(APIView):
+    def get(self, request):
+        jobs = Job.objects.filter(scheduled_date__gte=now().date())
+        serializer = JobSerializer(jobs, many=True)
+        return Response(serializer.data)
+
+# 3. Mark Job as Completed
+class MarkJobCompletedView(APIView):
+    def post(self, request, id):
+        try:
+            job = Job.objects.get(id=id)
+        except Job.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        job.priority = 0  # Assume 0 is a custom value for 'Completed'
+        job.save()
+        serializer = JobSerializer(job)
+        return Response(serializer.data)
+
+# 4. Duplicate Job
+class DuplicateJobView(APIView):
+    def post(self, request, id):
+        try:
+            job = Job.objects.get(id=id)
+        except Job.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        job.pk = None  # Clear the primary key to create a new instance
+        job.title = f"{job.title} (Copy)"
+        job.save()
+        serializer = JobSerializer(job)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# 5. Bulk Update Priority
+class BulkUpdatePriorityView(APIView):
+    def post(self, request):
+        job_ids = request.data.get("job_ids", [])
+        new_priority = request.data.get("priority")
+
+        if not job_ids or new_priority is None:
+            return Response(
+                {"error": "job_ids and priority are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        jobs = Job.objects.filter(id__in=job_ids)
+        jobs.update(priority=new_priority)
+        serializer = JobSerializer(jobs, many=True)
+        return Response(serializer.data)
+
+# 6. Get Recently Updated Jobs
+class RecentlyUpdatedJobsView(APIView):
+    def get(self, request):
+        one_day_ago = now() - timedelta(days=1)
+        jobs = Job.objects.filter(updated_at__gte=one_day_ago)
+        serializer = JobSerializer(jobs, many=True)
+        return Response(serializer.data) 

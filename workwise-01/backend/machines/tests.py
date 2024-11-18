@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from .models import Machine, MaintenanceTicket
+from datetime import timedelta, date
 
 class MachineAPITestCase(APITestCase):
     """
@@ -26,12 +27,62 @@ class MachineAPITestCase(APITestCase):
             name='Machine 1',
             model_number='M123',
             location='Warehouse 1',
-            status='operational'
+            status='operational',
+            last_maintenance_date=date.today() - timedelta(days=31)
         )
 
     def authenticate(self):
         """Helper method to authenticate requests using the JWT token."""
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
+
+    def test_schedule_maintenance(self):
+        """Test scheduling maintenance for a machine."""
+        self.authenticate()
+        url = reverse('machine-schedule-maintenance', kwargs={'pk': self.machine.pk})
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.machine.refresh_from_db()
+        self.assertEqual(self.machine.status, 'maintenance')
+
+    def test_maintenance_history(self):
+        """Test retrieving maintenance history for a machine."""
+        self.authenticate()
+        MaintenanceTicket.objects.create(
+            machine=self.machine,
+            issue_description='Issue 1',
+            reported_by=self.user,
+            status='open'
+        )
+        url = reverse('machine-maintenance-history', kwargs={'pk': self.machine.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) > 0)
+
+    def test_operational_machines(self):
+        """Test listing all operational machines."""
+        self.authenticate()
+        url = reverse('machine-operational-machines')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) > 0)
+
+    def test_maintenance_due(self):
+        """Test listing machines due for maintenance."""
+        self.authenticate()
+        url = reverse('machine-maintenance-due')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) > 0)
+
+    def test_update_location(self):
+        """Test updating the location of a machine."""
+        self.authenticate()
+        new_location = 'New Warehouse'
+        url = reverse('machine-update-location', kwargs={'pk': self.machine.pk})
+        response = self.client.patch(url, {'location': new_location})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.machine.refresh_from_db()
+        self.assertEqual(self.machine.location, new_location)
 
     def test_machine_list_authenticated(self):
         """Test retrieving the list of machines with authentication."""
