@@ -14,5 +14,5 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),  # Notifications-related URLs
     path('api/jobs/', include('jobs.urls')),  # Jobs-related URLs
     path('api/accounts/', include('accounts.urls')),
-    path('', home_view),  # Homepage
+    path('server-home/', home_view),  # Homepage
 ]
