@@ -1,18 +1,19 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import render
+from django.http import HttpResponse
 
 def home_view(request):
-    """Show a simple home page"""
-    return render(request, 'home.html')
+    """Simple view for the root path"""
+    return HttpResponse("Welcome to the Workwise backend!")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include('accounts.urls')),  # Authentication-related URLs
-    path('api/departments/', include('departments.urls')),  # Department-related URLs
-    path('api/machines/', include('machines.urls')),  # Machines-related URLs
-    path('api/notifications/', include('notifications.urls')),  # Notifications-related URLs
-    path('api/jobs/', include('jobs.urls')),  # Jobs-related URLs
+    path('api/auth/', include('accounts.urls')),
+    path('api/departments/', include('departments.urls')),
+    path('api/machines/', include('machines.urls')),
+    path('api/notifications/', include('notifications.urls')),
+    path('api/jobs/', include('jobs.urls')),
     path('api/accounts/', include('accounts.urls')),
-    path('server-home/', home_view),  # Homepage
+    path('server-home/', home_view),  # Already defined for backend server view
+    path('', home_view),  # Add this to handle requests to the root `/`
 ]
