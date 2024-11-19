@@ -1,10 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponse
+from django.shortcuts import render
 
 def home_view(request):
-    """Simple view for the root path"""
-    return HttpResponse("Welcome to the Workwise backend!")
+    """Show a simple home page"""
+    return render(request, 'home.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
