@@ -79,7 +79,7 @@ CORS_ALLOW_HEADERS = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'backend', 'backend', 'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'backend', 'build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
