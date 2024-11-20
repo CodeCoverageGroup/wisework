@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.views.generic import TemplateView
+from django.urls import path, include, re_path
 from django.shortcuts import render
 
 def home_view(request):
@@ -15,5 +16,5 @@ urlpatterns = [
     path('api/jobs/', include('jobs.urls')),
     path('api/accounts/', include('accounts.urls')),
     path('server-home/', home_view),  # Already defined for backend server view
-    path('', home_view),  # Add this to handle requests to the root `/`
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
 ]
