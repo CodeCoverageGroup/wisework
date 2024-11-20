@@ -15,6 +15,8 @@ from datetime import timedelta
 import os
 
 
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -79,7 +81,7 @@ CORS_ALLOW_HEADERS = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'backend', 'build')],
+        'DIRS': [os.path.join(BASE_DIR, 'frontend-build')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -163,10 +165,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-# Static files (CSS, JavaScript, Images)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print("basedir ", BASE_DIR)
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'build', 'static')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frontend-build', 'static'),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
